@@ -53,9 +53,11 @@
             </div>
         @endif
 
-        <!-- Categoria -->
-        @if ($product->category)
-            <p class="text-brand-red mb-2">{{ $product->category->name }}</p>
+        <!-- Categorie -->
+        @if ($product->categories->isNotEmpty())
+            <p class="text-brand-red mb-2">
+                {{ $product->categories->pluck('name')->join(', ') }}
+            </p>
         @endif
 
         <!-- Descrizione -->
@@ -69,13 +71,6 @@
         <p class="text-2xl font-semibold text-brand-red mb-4">
             {{ number_format($product->price_cents / 100, 2, ',', '.') }} €
         </p>
-
-        <!-- Allergeni -->
-        @if (!empty($product->allergens))
-            <p class="text-brand-dark/60 mb-4">
-                Allergeni: {{ implode(', ', $product->allergens) }}
-            </p>
-        @endif
 
         <!-- Form Carrello -->
         <form method="POST" action="{{ route('cart.add') }}" class="flex items-center gap-4">

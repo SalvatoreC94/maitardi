@@ -6,8 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class OrderItem extends Model
 {
-    // La tabella non ha created_at / updated_at
-    public $timestamps = false;
+    public $timestamps = true;
 
     protected $fillable = [
         'order_id',

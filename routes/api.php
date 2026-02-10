@@ -146,7 +146,7 @@ Route::get('/products/{slug}', function (string $slug) {
         'slug' => $p->slug,
         'description' => $p->description,
         'price_cents' => $p->price_cents,
-        'stock' => $p->stock,
+        'stock' => $p->stock_qty,
         'categories' => $p->categories()->get(['id','name','slug']),
         'image_url' => $p->image_url ?? 'https://picsum.photos/800/600?blur=2',
         'image_urls' => $p->image_urls ?? ['https://picsum.photos/800/600?blur=2'],
@@ -156,8 +156,8 @@ Route::get('/products/{slug}', function (string $slug) {
 // Prodotti in evidenza
 Route::get('/featured-products', function () {
     $products = Product::where('is_visible', true)
-        ->where('is_featured', true)
         ->orderByDesc('id')
+        ->take(6)
         ->get();
 
     return $products->map(fn($p) => [

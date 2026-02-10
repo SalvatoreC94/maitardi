@@ -55,7 +55,7 @@ class CheckoutController extends Controller
             'address.prov'    => ['required', 'string', 'size:2'],
         ]);
 
-        // 2) Crea/recupera utente se non autenticato (solo campi esistenti)
+        // 2) Crea/recupera utente se non autenticato
         $userId = auth()->id();
         if (!$userId) {
             $user = User::firstOrCreate(
@@ -63,13 +63,11 @@ class CheckoutController extends Controller
                 [
                     'name'     => $data['name'],
                     'password' => bcrypt(Str::random(16)),
-                    // se hai la colonna 'phone' in users, puoi sbloccarla:
-                    // 'phone' => $data['phone'] ?? null,
+                    'phone'    => $data['phone'] ?? null,
                 ]
             );
             $userId = $user->id;
 
-            // invia link per impostare password
             try {
                 Password::sendResetLink(['email' => $user->email]);
             } catch (\Throwable $e) {
@@ -100,30 +98,30 @@ class CheckoutController extends Controller
         $shipping = $this->calcShipping($subtotal);
         $total    = $subtotal + $shipping;
 
-        // 4) Crea ordine
+        // 4) Crea ordine con order_status = 'pending' (valore valido per l'enum DB)
         $order = Order::create([
             'user_id'               => $userId,
             'code'                  => strtoupper(Str::random(10)),
             'email'                 => $data['email'],
             'customer_name'         => $data['name'],
             'phone'                 => $data['phone'] ?? null,
-            'delivery_address'      => $data['address'], // JSON
+            'delivery_address'      => $data['address'],
             'delivery_fee_cents'    => $shipping,
             'subtotal_cents'        => $subtotal,
             'discount_cents'        => 0,
             'total_cents'           => $total,
             'currency'              => 'EUR',
             'payment_status'        => 'pending',
-            'order_status'          => 'new',
-            'courier_name'          => 'Corriere',
+            'order_status'          => 'pending',
+            'courier_name'          => null,
             'tracking_code'         => null,
             'stripe_payment_intent' => null,
         ]);
 
         // 5) Righe ordine (snapshot nome e prezzi al momento dell'acquisto)
         foreach ($items as $it) {
-            $product = $it->product; // eager loaded
-            $unit    = $it->unit_price_cents ?? $product->price_cents; // fallback listino
+            $product = $it->product;
+            $unit    = $it->unit_price_cents ?? $product->price_cents;
             $line    = $it->total_cents       ?? ($unit * $it->qty);
 
             OrderItem::create([
@@ -136,7 +134,7 @@ class CheckoutController extends Controller
             ]);
         }
 
-        // 6) PaymentIntent Stripe
+        // 6) PaymentIntent Stripe (salva cart_id nei metadata per svuotare dopo)
         try {
             $secret = config('services.stripe.secret') ?? env('STRIPE_SECRET');
             if (!$secret) {
@@ -145,33 +143,25 @@ class CheckoutController extends Controller
 
             $stripe = new StripeClient($secret);
             $pi = $stripe->paymentIntents->create([
-                'amount'   => $total,       // centesimi
+                'amount'   => $total,
                 'currency' => 'eur',
                 'receipt_email' => $order->email,
                 'metadata' => [
                     'order_id'   => (string) $order->id,
                     'order_code' => $order->code,
+                    'cart_id'    => (string) $cart->id,
                 ],
                 'automatic_payment_methods' => ['enabled' => true],
             ]);
 
             $order->update(['stripe_payment_intent' => $pi->id]);
         } catch (\Throwable $e) {
-            // fall back: segna fallito e torna errore leggibile
             $order->update(['payment_status' => 'failed']);
             return response()->json(['error' => 'Stripe error: ' . $e->getMessage()], 500);
         }
 
-        // 7) Scala stock (usa stock_qty)
-        foreach ($items as $it) {
-            $p = $it->product;
-            if (!is_null($p->stock_qty)) {
-                $p->decrement('stock_qty', $it->qty);
-            }
-        }
-
-        // 8) Svuota carrello
-        $cart->items()->delete();
+        // Stock e carrello NON vengono toccati qui.
+        // Verranno gestiti dal webhook Stripe dopo la conferma del pagamento.
 
         return response()->json([
             'clientSecret' => $pi->client_secret,
@@ -184,8 +174,8 @@ class CheckoutController extends Controller
      */
     private function calcShipping(int $subtotalCents): int
     {
-        $base      = (int) env('SHIPPING_BASE_CENTS', 1000);          // 10,00 €
-        $threshold = (int) env('FREE_SHIPPING_THRESHOLD_CENTS', 6900); // 69,00 €
+        $base      = (int) env('SHIPPING_BASE_CENTS', 1000);
+        $threshold = (int) env('FREE_SHIPPING_THRESHOLD_CENTS', 6900);
         return $subtotalCents >= $threshold ? 0 : $base;
     }
 }

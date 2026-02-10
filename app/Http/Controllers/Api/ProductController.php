@@ -43,12 +43,10 @@ class ProductController extends Controller
                 'name'        => $p->name,
                 'slug'        => $p->slug,
                 'price_cents' => $p->price_cents,
-                'stock'       => $p->stock,
+                'stock'       => $p->stock_qty,
                 'categories'  => $p->categories,
                 'image_url'   => $p->image_url,
                 'image_urls'  => $p->image_urls,
-                // opzionale: anteprima corta della descrizione con \n preservati
-                // 'description' => $p->description, // sconsigliato qui per payload
             ];
         });
 
@@ -76,7 +74,7 @@ class ProductController extends Controller
             'description'      => $descriptionRaw,   // mantiene \n
             'description_html' => $descriptionHtml, // già pronta con <br>, safe
             'price_cents'      => $product->price_cents,
-            'stock'            => $product->stock,
+            'stock'            => $product->stock_qty,
             'categories'       => $product->categories,
             'image_url'        => $product->image_url,
             'image_urls'       => $product->image_urls,
@@ -89,8 +87,8 @@ class ProductController extends Controller
     public function featured()
     {
         $products = Product::where('is_visible', true)
-            ->where('is_featured', true)
             ->orderByDesc('id')
+            ->take(6)
             ->get();
 
         return response()->json($products->map(function ($p) {

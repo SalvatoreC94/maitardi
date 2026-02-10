@@ -12,20 +12,24 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'name','email','password',
-        'phone','address','city','province','zip',
+        'name',
+        'email',
+        'password',
+        'phone',
+        'shipping_address',
         'is_admin',
     ];
 
-    protected $hidden = ['password','remember_token'];
+    protected $hidden = ['password', 'remember_token'];
 
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'is_admin' => 'boolean',
+        'is_admin'          => 'boolean',
+        'shipping_address'  => 'array',
     ];
 
-    // Accesso a Filament solo per admin
-public function canAccessPanel(\Filament\Panel $panel): bool
-{
-    return true; // forza sempre true
-}}
+    public function canAccessPanel(\Filament\Panel $panel): bool
+    {
+        return $this->is_admin === true;
+    }
+}
