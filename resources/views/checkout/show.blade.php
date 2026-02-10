@@ -164,7 +164,7 @@
         <input 
           name="name" 
           type="text"
-          value="{{ auth()->user()->name ?? '' }}" 
+          value="{{ auth()->user()?->name ?? '' }}"
           required
           minlength="3"
           maxlength="100"
@@ -176,7 +176,7 @@
         <input 
           name="email" 
           type="email" 
-          value="{{ auth()->user()->email ?? '' }}" 
+          value="{{ auth()->user()?->email ?? '' }}"
           required
           maxlength="100"
           placeholder="mario.rossi@esempio.it"
@@ -187,7 +187,7 @@
         <input 
           name="phone" 
           type="tel" 
-          value="{{ auth()->user()->phone ?? '' }}"
+          value="{{ auth()->user()?->phone ?? '' }}"
           placeholder="+39 333 1234567"
           pattern="^(\+39)?[\s]?[0-9]{9,11}$"
           title="Numero di telefono italiano valido (es. 3331234567 o +39 333 1234567)">
@@ -196,7 +196,7 @@
         <input 
           name="address[via]" 
           type="text"
-          value="{{ auth()->user()->shipping_address['via'] ?? '' }}" 
+          value="{{ auth()->user()?->shipping_address['via'] ?? '' }}" 
           required
           minlength="3"
           maxlength="100"
@@ -206,7 +206,7 @@
         <input 
           name="address[civico]" 
           type="text"
-          value="{{ auth()->user()->shipping_address['civico'] ?? '' }}" 
+          value="{{ auth()->user()?->shipping_address['civico'] ?? '' }}" 
           required
           maxlength="10"
           placeholder="12"
@@ -217,7 +217,7 @@
         <input 
           name="address[cap]" 
           type="text"
-          value="{{ auth()->user()->shipping_address['cap'] ?? '' }}" 
+          value="{{ auth()->user()?->shipping_address['cap'] ?? '' }}" 
           required
           pattern="^[0-9]{5}$"
           maxlength="5"
@@ -229,7 +229,7 @@
         <input 
           name="address[citta]" 
           type="text"
-          value="{{ auth()->user()->shipping_address['citta'] ?? '' }}" 
+          value="{{ auth()->user()?->shipping_address['citta'] ?? '' }}" 
           required
           minlength="2"
           maxlength="50"
@@ -241,7 +241,7 @@
         <input 
           name="address[prov]" 
           type="text"
-          value="{{ auth()->user()->shipping_address['prov'] ?? '' }}" 
+          value="{{ auth()->user()?->shipping_address['prov'] ?? '' }}" 
           required
           maxlength="2"
           minlength="2"

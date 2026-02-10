@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Cart;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -12,11 +13,9 @@ class StripeWebhookController extends Controller
 {
     public function __invoke(Request $request)
     {
-        // Leggi payload grezzo e intestazione firma
         $payload   = $request->getContent();
         $sigHeader = $request->header('Stripe-Signature');
 
-        // Secret del webhook da config/services.php o .env
         $secret = config('services.stripe.webhook_secret') ?? env('STRIPE_WEBHOOK_SECRET');
         if (! $secret) {
             Log::error('Stripe: webhook secret mancante (STRIPE_WEBHOOK_SECRET).');
@@ -24,18 +23,12 @@ class StripeWebhookController extends Controller
         }
 
         try {
-            // Non strettamente necessario per verificare la firma,
-            // ma utile se poi altre parti interrogano Stripe:
             Stripe::setApiKey(config('services.stripe.secret') ?? env('STRIPE_SECRET'));
-
-            // Verifica la firma e costruisci l’evento
             $event = Webhook::constructEvent($payload, $sigHeader, $secret);
         } catch (\UnexpectedValueException $e) {
-            // Payload non valido
             Log::error('Stripe: payload non valido', ['err' => $e->getMessage()]);
             return response('Invalid payload', 400);
         } catch (\Stripe\Exception\SignatureVerificationException $e) {
-            // Firma non valida
             Log::error('Stripe: firma non valida', ['err' => $e->getMessage()]);
             return response('Invalid signature', 400);
         } catch (\Throwable $e) {
@@ -48,11 +41,8 @@ class StripeWebhookController extends Controller
 
         Log::info('Stripe: evento ricevuto', ['type' => $type]);
 
-        /**
-         * Payment Element / PaymentIntent flow
-         */
         if (in_array($type, ['payment_intent.succeeded', 'payment_intent.payment_failed'])) {
-            $pi       = $object; // \Stripe\PaymentIntent
+            $pi       = $object;
             $intentId = $pi->id ?? null;
 
             Log::info('Stripe: PI ricevuto', ['pi' => $intentId]);
@@ -72,7 +62,25 @@ class StripeWebhookController extends Controller
                             'payment_status' => 'paid',
                             'order_status'   => 'preparing',
                         ]);
-                        Log::info("Stripe: ordine {$order->code} aggiornato a paid/processing");
+
+                        // Decrementa stock dopo conferma pagamento
+                        foreach ($order->items()->with('product')->get() as $orderItem) {
+                            $product = $orderItem->product;
+                            if ($product && !is_null($product->stock_qty)) {
+                                $product->decrement('stock_qty', $orderItem->qty);
+                            }
+                        }
+
+                        // Svuota il carrello associato
+                        $cartId = $pi->metadata->cart_id ?? null;
+                        if ($cartId) {
+                            $cart = Cart::find($cartId);
+                            if ($cart) {
+                                $cart->items()->delete();
+                            }
+                        }
+
+                        Log::info("Stripe: ordine {$order->code} aggiornato a paid/preparing, stock decrementato, carrello svuotato");
                     } else {
                         $order->update([
                             'payment_status' => 'failed',
@@ -85,10 +93,6 @@ class StripeWebhookController extends Controller
             }
         }
 
-        /**
-         * (Opzionale) Checkout Session flow
-         * Se un domani userai Stripe Checkout, questo evento chiude comunque l’ordine.
-         */
         if ($type === 'checkout.session.completed') {
             $intentId = $object->payment_intent ?? null;
 
@@ -99,18 +103,16 @@ class StripeWebhookController extends Controller
 
                 if ($order) {
                     $order->update([
-                        'order_status' => Order::STATUS_PREPARING,
-                         'payment_status' => Order::PAY_PAID,
-
+                        'order_status'   => Order::STATUS_PREPARING,
+                        'payment_status' => Order::PAY_PAID,
                     ]);
-                    Log::info("Stripe: ordine {$order->code} aggiornato da checkout.session a paid/processing");
+                    Log::info("Stripe: ordine {$order->code} aggiornato da checkout.session a paid/preparing");
                 } else {
                     Log::warning('Stripe: nessun ordine per checkout.session', ['pi' => $intentId]);
                 }
             }
         }
 
-        // Rispondi 204: tutto ok (idempotente)
         return response()->noContent();
     }
 }

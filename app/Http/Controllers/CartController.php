@@ -9,25 +9,23 @@ use Illuminate\Http\Request;
 
 class CartController extends Controller
 {
-   public function show()
-{
-    // Se hai un modello CartItem:
-    $items = \App\Models\CartItem::with('product')->get();
+    public function show()
+    {
+        $cart = Cart::fromSession();
+        $items = $cart->items()->with('product')->get();
 
-    $subtotal = $items->sum('total_cents');
+        $subtotal = $items->sum('total_cents');
 
-    $excludedIds = $items->pluck('product_id');
+        $excludedIds = $items->pluck('product_id');
 
-    // Carichiamo 3 prodotti casuali visibili
-    $suggested = \App\Models\Product::where('is_visible', true)
-        ->whereNotIn('id', $excludedIds)
-        ->inRandomOrder()
-        ->take(3)
-        ->get();
+        $suggested = Product::where('is_visible', true)
+            ->whereNotIn('id', $excludedIds)
+            ->inRandomOrder()
+            ->take(3)
+            ->get();
 
-    return view('cart.show', compact('items', 'subtotal', 'suggested'));
-}
-
+        return view('cart.show', compact('items', 'subtotal', 'suggested'));
+    }
 
     public function add(Request $r)
     {
@@ -39,16 +37,14 @@ class CartController extends Controller
         $cart = Cart::fromSession();
         $product = Product::findOrFail($data['product_id']);
 
-        // Se stock definito, verifica
-        if (!is_null($product->stock) && $data['qty'] > $product->stock) {
+        if (!is_null($product->stock_qty) && $data['qty'] > $product->stock_qty) {
             return back()->withErrors(['qty' => 'Quantità oltre lo stock disponibile.']);
         }
 
-        // Se esiste già riga stesso prodotto, somma qty
         $item = $cart->items()->where('product_id', $product->id)->first();
         if ($item) {
             $newQty = $item->qty + $data['qty'];
-            if (!is_null($product->stock) && $newQty > $product->stock) {
+            if (!is_null($product->stock_qty) && $newQty > $product->stock_qty) {
                 return back()->withErrors(['qty' => 'Quantità oltre lo stock disponibile.']);
             }
             $item->update([
@@ -69,10 +65,15 @@ class CartController extends Controller
 
     public function update(Request $r, CartItem $item)
     {
+        $cart = Cart::fromSession();
+        if ($item->cart_id !== $cart->id) {
+            abort(403);
+        }
+
         $r->validate(['qty' => 'required|integer|min:1|max:20']);
 
         $product = $item->product;
-        if (!is_null($product->stock) && $r->qty > $product->stock) {
+        if (!is_null($product->stock_qty) && $r->qty > $product->stock_qty) {
             return back()->withErrors(['qty' => 'Quantità oltre lo stock disponibile.']);
         }
 
@@ -86,6 +87,11 @@ class CartController extends Controller
 
     public function remove(CartItem $item)
     {
+        $cart = Cart::fromSession();
+        if ($item->cart_id !== $cart->id) {
+            abort(403);
+        }
+
         $item->delete();
         return back()->with('ok', 'Rimosso dal carrello.');
     }

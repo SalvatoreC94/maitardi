@@ -217,10 +217,10 @@
             <td>{{ $it->product->name }}</td>
             <td>{{ number_format($it->unit_price_cents / 100, 2, ',', '.') }} €</td>
             <td>
-              <form method="POST" action="{{ route('cart.update', $it) }}">
+              <form method="POST" action="{{ route('cart.update', $it) }}" class="cart-qty-form">
                 @csrf @method('PATCH')
-                <input type="number" name="qty" value="{{ $it->qty }}" min="1" max="20">
-                <button class="btn btn-light" type="submit">Aggiorna</button>
+                <input type="number" name="qty" value="{{ $it->qty }}" min="1" max="20" onchange="this.form.submit()">
+                <noscript><button class="btn btn-light" type="submit">Aggiorna</button></noscript>
               </form>
             </td>
             <td>{{ number_format($it->total_cents / 100, 2, ',', '.') }} €</td>
@@ -238,18 +238,9 @@
     <p class="total">Subtotale: {{ number_format($subtotal / 100, 2, ',', '.') }} €</p>
 
     <div class="cart-footer">
-      <a href="{{ route('catalogo') }}" class="btn btn-light">Continua lo shopping</a>
+      <a href="{{ route('shop') }}" class="btn btn-light">Continua lo shopping</a>
       <a href="{{ route('checkout.show') }}" class="btn btn-dark">Vai al checkout</a>
     </div>
-
-    <!-- 💡 Sezione "Potrebbe piacerti anche" -->
-    
-     @php
-        $suggested = \App\Models\Product::where('is_visible', true)
-            ->inRandomOrder()
-            ->take(3)
-            ->get();
-    @endphp
 
     @if ($suggested->count() > 0)
       <div class="suggestions">
