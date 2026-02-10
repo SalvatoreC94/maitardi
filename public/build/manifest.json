@@ -1,0 +1,35 @@
+{
+  "resources/css/app.css": {
+    "file": "assets/app-Dtf6_egw.css",
+    "src": "resources/css/app.css",
+    "isEntry": true,
+    "name": "app",
+    "names": [
+      "app.css"
+    ]
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-DgoggAxj.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true,
+    "dynamicImports": [
+      "resources/js/views/TerminiCondizioni.vue"
+    ],
+    "css": [
+      "assets/app-B-geNQg4.css"
+    ]
+  },
+  "resources/js/views/TerminiCondizioni.vue": {
+    "file": "assets/TerminiCondizioni-D1iFc760.js",
+    "name": "TerminiCondizioni",
+    "src": "resources/js/views/TerminiCondizioni.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js"
+    ],
+    "css": [
+      "assets/TerminiCondizioni-DvL9JxHC.css"
+    ]
+  }
+}
