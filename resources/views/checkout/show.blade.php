@@ -41,8 +41,13 @@
 
     @media (max-width: 800px) {
       .grid {
-        grid-template-columns: 1fr;
+        display: flex;
+        flex-direction: column-reverse;
+        gap: 24px;
       }
+
+      body { padding: 20px 12px; }
+      h1 { font-size: 1.5rem; margin-bottom: 1.2rem; }
     }
 
     .card {
