@@ -178,6 +178,13 @@
       .cart-footer .btn {
         width: 100%;
         text-align: center;
+        padding: 10px 12px;
+        font-size: 0.85rem;
+      }
+
+      .btn {
+        padding: 6px 10px;
+        font-size: 0.82rem;
       }
 
       .total { font-size: 1.1rem; }
