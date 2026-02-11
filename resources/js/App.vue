@@ -38,14 +38,14 @@
 
     <!-- Header / Navbar -->
     <header class="bg-white/90 backdrop-blur sticky top-0 z-50 border-b border-brand-peach/40 shadow-sm">
-      <div class="max-w-8xl mx-auto px-4 h-20 flex items-center justify-between relative">
+      <div class="max-w-8xl mx-auto px-4 h-24 md:h-28 flex items-center justify-between relative">
         <!-- 🔹 Logo sinistro -->
         <RouterLink to="/" class="flex items-center gap-3">
           <img
             :src="logo"
             alt="Pasticceria Maitardi"
-            class="h-20 md:h-26 w-auto object-contain"
-            style="max-height: 90px;"
+            class="h-24 md:h-32 w-auto object-contain"
+            style="max-height: 110px;"
           />
         </RouterLink>
 
@@ -54,8 +54,8 @@
           <img
             :src="logoSf"
             alt="Logo Secondario"
-            class="h-20 md:h-26 w-auto object-contain"
-            style="max-height: 90px;"
+            class="h-24 md:h-32 w-auto object-contain"
+            style="max-height: 110px;"
           />
         </div>
 

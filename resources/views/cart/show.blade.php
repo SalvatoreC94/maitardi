@@ -119,6 +119,7 @@
       align-items: center;
       gap: 10px;
       margin-top: 20px;
+      flex-wrap: wrap;
     }
 
     .empty-cart {
@@ -126,6 +127,60 @@
       font-size: 1.1rem;
       color: var(--brand-blue);
       margin-top: 2rem;
+    }
+
+    /* --- Mobile responsive cart --- */
+    @media (max-width: 640px) {
+      body { padding: 20px 12px; }
+      h1 { font-size: 1.5rem; margin-bottom: 1rem; }
+
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+
+      thead { display: none; }
+
+      tr {
+        background: #fff;
+        border: 1px solid #f0f0f0;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        padding: 14px 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.04);
+      }
+
+      td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 0;
+        border-bottom: 1px solid #f5f5f5;
+        font-size: 0.95rem;
+      }
+
+      td:last-child { border-bottom: none; }
+
+      td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--brand-wine);
+        margin-right: 8px;
+        flex-shrink: 0;
+      }
+
+      .actions { justify-content: flex-end; }
+
+      .cart-footer {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .cart-footer .btn {
+        width: 100%;
+        text-align: center;
+      }
+
+      .total { font-size: 1.1rem; }
     }
 
     /* --- Sezione suggerimenti --- */
@@ -214,16 +269,16 @@
       <tbody>
         @foreach ($items as $it)
           <tr>
-            <td>{{ $it->product->name }}</td>
-            <td>{{ number_format($it->unit_price_cents / 100, 2, ',', '.') }} €</td>
-            <td>
+            <td data-label="Prodotto">{{ $it->product->name }}</td>
+            <td data-label="Prezzo">{{ number_format($it->unit_price_cents / 100, 2, ',', '.') }} €</td>
+            <td data-label="Qtà">
               <form method="POST" action="{{ route('cart.update', $it) }}" class="cart-qty-form">
                 @csrf @method('PATCH')
                 <input type="number" name="qty" value="{{ $it->qty }}" min="1" max="20" onchange="this.form.submit()">
                 <noscript><button class="btn btn-light" type="submit">Aggiorna</button></noscript>
               </form>
             </td>
-            <td>{{ number_format($it->total_cents / 100, 2, ',', '.') }} €</td>
+            <td data-label="Totale">{{ number_format($it->total_cents / 100, 2, ',', '.') }} €</td>
             <td class="actions">
               <form method="POST" action="{{ route('cart.remove', $it) }}">
                 @csrf @method('DELETE')
