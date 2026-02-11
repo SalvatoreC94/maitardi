@@ -2,35 +2,35 @@
   <div class="min-h-screen bg-brand-peach/5 text-brand-dark flex flex-col">
     <!-- Topbar -->
     <div class="text-xs bg-brand-wine text-white">
-      <div class="max-w-6xl mx-auto px-4 h-9 flex items-center justify-between">
-<span class="tracking-wide flex items-center gap-4">
-  📍 San Valentino Torio
+      <div class="max-w-6xl mx-auto px-2 md:px-4 h-9 flex items-center justify-between gap-2">
+        <span class="tracking-wide flex items-center gap-2 md:gap-4 min-w-0">
+          <span class="hidden sm:inline">📍 San Valentino Torio</span>
+          <span class="sm:hidden">📍 S. Valentino T.</span>
 
-  <!-- WhatsApp (pill) -->
- <a
-  href="https://wa.me/393348169141?text=Ciao%2C%20sarei%20interessato%20a..."
-  target="_blank"
-  rel="noopener noreferrer"
-  class="inline-flex items-center gap-2 px-3 py-1.5 border border-brand-peach/60 rounded-full 
-         text-white hover:bg-brand-peach/20 transition"
->
-  <i class="fa-brands fa-whatsapp text-brand-peach"></i>
-  WhatsApp 3348169141
-</a>
+          <!-- WhatsApp (pill) -->
+          <a
+            href="https://wa.me/393348169141?text=Ciao%2C%20sarei%20interessato%20a..."
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1 md:py-1.5 border border-brand-peach/60 rounded-full
+                   text-white hover:bg-brand-peach/20 transition text-[10px] md:text-xs whitespace-nowrap"
+          >
+            <i class="fa-brands fa-whatsapp text-brand-peach"></i>
+            <span class="hidden sm:inline">WhatsApp 3348169141</span>
+            <span class="sm:hidden">WhatsApp</span>
+          </a>
 
+          <!-- Telefono (pill) -->
+          <a
+            href="tel:+393348169141"
+            class="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 border border-brand-peach/60 rounded-full
+                   text-white hover:bg-brand-peach/20 transition"
+          >
+            ☎️ 3348169141
+          </a>
+        </span>
 
-
-  <!-- Telefono (pill) -->
-  <a
-    href="tel:+393348169141"
-    class="inline-flex items-center gap-2 px-3 py-1.5 border border-brand-peach/60 rounded-full 
-           text-white hover:bg-brand-peach/20 transition"
-  >
-    ☎️ 3348169141
-  </a>
-</span>
-
-        <RouterLink to="/contatti" class="hover:underline text-brand-peach">
+        <RouterLink to="/contatti" class="hover:underline text-brand-peach whitespace-nowrap">
           Contattaci
         </RouterLink>
       </div>
