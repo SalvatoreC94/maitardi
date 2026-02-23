@@ -310,11 +310,19 @@
         <div class="suggestion-grid">
           @foreach ($suggested as $product)
             <div class="suggestion-item">
-              <a href="{{ route('shop') }}" style="text-decoration:none; color:inherit;">
+              <a href="{{ route('prodotto.show', $product) }}" style="text-decoration:none; color:inherit;">
                 <img src="{{ $product->image_url }}" alt="{{ $product->name }}">
                 <h3>{{ $product->name }}</h3>
                 <p>€ {{ number_format($product->price_cents / 100, 2, ',', '.') }}</p>
               </a>
+              <form method="POST" action="{{ route('cart.add') }}" style="padding:0 12px 12px;">
+                @csrf
+                <input type="hidden" name="product_id" value="{{ $product->id }}">
+                <input type="hidden" name="qty" value="1">
+                <button type="submit" class="btn btn-dark" style="width:100%; text-align:center; font-size:0.85rem;">
+                  Aggiungi al carrello
+                </button>
+              </form>
             </div>
           @endforeach
         </div>
