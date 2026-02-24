@@ -84,16 +84,10 @@ class ProductResource extends Resource
                     ->multiple()
                     ->reorderable()
                     ->appendFiles()
-                    ->acceptedFileTypes(['image/*'])
-                    ->maxSize(4096)
+                    ->maxSize(5120)
                     ->disk('public')
                     ->directory('products')
                     ->visibility('public')
-                    ->preserveFilenames()
-                    ->getUploadedFileNameForStorageUsing(function ($file): string {
-                        $base = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                        return Str::slug($base) . '-' . Str::random(8) . '.' . $file->getClientOriginalExtension();
-                    })
                     ->imageEditor()
                     ->openable()
                     ->downloadable()
