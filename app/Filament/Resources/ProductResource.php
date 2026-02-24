@@ -13,8 +13,6 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 
 class ProductResource extends Resource
 {
@@ -91,31 +89,16 @@ class ProductResource extends Resource
                     ->disk('public')
                     ->directory('products')
                     ->visibility('public')
-                    ->saveUploadedFileUsing(function ($file) {
-                        $manager = new ImageManager(new GdDriver());
-                        $image = $manager->read($file->getRealPath());
-
-                        // Ridimensiona se troppo grande (max 1200px lato lungo)
-                        $image->scaleDown(width: 1200, height: 1200);
-
+                    ->preserveFilenames()
+                    ->getUploadedFileNameForStorageUsing(function ($file): string {
                         $base = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                        $name = 'products/' . Str::slug($base) . '-' . Str::random(8) . '.webp';
-
-                        $encoded = $image->toWebp(quality: 85);
-                        Storage::disk('public')->put($name, (string) $encoded);
-
-                        return $name;
-                    })
-                    ->deleteUploadedFileUsing(function (string $filePath): void {
-                        if (Storage::disk('public')->exists($filePath)) {
-                            Storage::disk('public')->delete($filePath);
-                        }
+                        return Str::slug($base) . '-' . Str::random(8) . '.' . $file->getClientOriginalExtension();
                     })
                     ->imageEditor()
                     ->openable()
                     ->downloadable()
                     ->maxFiles(12)
-                    ->hint('Le immagini vengono convertite automaticamente in WebP'),
+                    ->hint('Le immagini vengono convertite automaticamente in WebP dopo il salvataggio'),
             ])->columns(2),
         ]);
     }
