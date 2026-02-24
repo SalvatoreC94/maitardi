@@ -207,7 +207,8 @@
     .suggestion-grid {
       display: grid;
       gap: 1.5rem;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(240px, 320px));
+      justify-content: center;
       max-width: 1000px;
       margin: 0 auto;
     }
