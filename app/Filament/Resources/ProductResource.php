@@ -6,11 +6,15 @@ use App\Filament\Resources\ProductResource\Pages;
 use App\Models\Product;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 
 class ProductResource extends Resource
 {
@@ -29,13 +33,25 @@ class ProductResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->label('Nome')
                     ->required()
-                    ->maxLength(120),
+                    ->maxLength(120)
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
+                        if (! $get('slug_manual')) {
+                            $set('slug', Str::slug($state));
+                        }
+                    }),
 
                 Forms\Components\TextInput::make('slug')
                     ->label('Slug')
                     ->required()
                     ->unique(table: Product::class, column: 'slug', ignoreRecord: true)
-                    ->maxLength(140),
+                    ->maxLength(140)
+                    ->hint('Generato automaticamente dal nome. Modificabile.')
+                    ->afterStateUpdated(fn (Set $set) => $set('slug_manual', true)),
+
+                Forms\Components\Hidden::make('slug_manual')
+                    ->default(false)
+                    ->dehydrated(false),
 
                 Forms\Components\Select::make('categories')
                     ->label('Categorie')
@@ -75,11 +91,20 @@ class ProductResource extends Resource
                     ->disk('public')
                     ->directory('products')
                     ->visibility('public')
-                    ->preserveFilenames()
-                    ->getUploadedFileNameForStorageUsing(function ($file): string {
-                        $ext  = $file->getClientOriginalExtension();
+                    ->saveUploadedFileUsing(function ($file) {
+                        $manager = new ImageManager(new GdDriver());
+                        $image = $manager->read($file->getRealPath());
+
+                        // Ridimensiona se troppo grande (max 1200px lato lungo)
+                        $image->scaleDown(width: 1200, height: 1200);
+
                         $base = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                        return 'products/' . Str::slug($base) . '-' . Str::random(8) . '.' . $ext;
+                        $name = 'products/' . Str::slug($base) . '-' . Str::random(8) . '.webp';
+
+                        $encoded = $image->toWebp(quality: 85);
+                        Storage::disk('public')->put($name, (string) $encoded);
+
+                        return $name;
                     })
                     ->deleteUploadedFileUsing(function (string $filePath): void {
                         if (Storage::disk('public')->exists($filePath)) {
@@ -90,7 +115,7 @@ class ProductResource extends Resource
                     ->openable()
                     ->downloadable()
                     ->maxFiles(12)
-                    ->hint('Trascina per riordinare — la prima è la cover'),
+                    ->hint('Le immagini vengono convertite automaticamente in WebP'),
             ])->columns(2),
         ]);
     }
