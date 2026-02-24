@@ -17,7 +17,6 @@ Route::get('/', function () {
 
 // Pagina prodotto (Blade, resta separata dalla SPA)
 Route::get('/prodotti/{product:slug}', function (Product $product) {
-    abort_unless($product->is_visible, 404);
     return view('prodotto', compact('product'));
 })->name('prodotto.show');
 

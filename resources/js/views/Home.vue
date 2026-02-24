@@ -87,10 +87,13 @@
           </a>
           <div class="p-4 text-left flex-1 flex flex-col">
             <h3 class="font-semibold mb-2 text-brand-dark">{{ p.name }}</h3>
-            <p class="text-brand-red font-semibold text-lg mb-4">
+            <p v-if="p.is_visible" class="text-brand-red font-semibold text-lg mb-4">
               {{ formatPrice(p.price_cents) }}
             </p>
-            <form method="POST" action="/carrello/aggiungi" class="mt-auto">
+            <p v-else class="text-stone-400 font-semibold text-lg mb-4 italic">
+              Non disponibile
+            </p>
+            <form v-if="p.is_visible" method="POST" action="/carrello/aggiungi" class="mt-auto">
               <input type="hidden" name="_token" :value="csrf" />
               <input type="hidden" name="product_id" :value="p.id" />
               <input type="hidden" name="qty" value="1" />
@@ -100,6 +103,14 @@
                 Aggiungi al carrello
               </button>
             </form>
+            <div v-else class="mt-auto">
+              <button
+                disabled
+                class="w-full bg-stone-300 text-stone-500 py-2 rounded-lg cursor-not-allowed text-sm font-semibold"
+              >
+                Non disponibile
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -18,8 +18,7 @@ class CartController extends Controller
 
         $excludedIds = $items->pluck('product_id');
 
-        $suggested = Product::where('is_visible', true)
-            ->whereNotIn('id', $excludedIds)
+        $suggested = Product::whereNotIn('id', $excludedIds)
             ->inRandomOrder()
             ->take(3)
             ->get();
@@ -36,6 +35,10 @@ class CartController extends Controller
 
         $cart = Cart::fromSession();
         $product = Product::findOrFail($data['product_id']);
+
+        if (!$product->is_visible) {
+            return back()->withErrors(['qty' => 'Questo prodotto non è attualmente disponibile.']);
+        }
 
         if (!is_null($product->stock_qty) && $data['qty'] > $product->stock_qty) {
             return back()->withErrors(['qty' => 'Quantità oltre lo stock disponibile.']);
