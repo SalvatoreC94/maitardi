@@ -15,7 +15,6 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         $query = Product::query()
-            ->where('is_visible', true)
             ->with(['categories:id,name,slug']);
 
         // Filtro per categoria via slug
@@ -43,6 +42,7 @@ class ProductController extends Controller
                 'name'        => $p->name,
                 'slug'        => $p->slug,
                 'price_cents' => $p->price_cents,
+                'is_visible'  => $p->is_visible,
                 'stock'       => $p->stock_qty,
                 'categories'  => $p->categories,
                 'image_url'   => $p->image_url,
@@ -59,7 +59,6 @@ class ProductController extends Controller
     public function show(string $slug)
     {
         $product = Product::where('slug', $slug)
-            ->where('is_visible', true)
             ->with(['categories:id,name,slug'])
             ->firstOrFail();
 
@@ -74,6 +73,7 @@ class ProductController extends Controller
             'description'      => $descriptionRaw,   // mantiene \n
             'description_html' => $descriptionHtml, // già pronta con <br>, safe
             'price_cents'      => $product->price_cents,
+            'is_visible'       => $product->is_visible,
             'stock'            => $product->stock_qty,
             'categories'       => $product->categories,
             'image_url'        => $product->image_url,
@@ -86,8 +86,7 @@ class ProductController extends Controller
      */
     public function featured()
     {
-        $products = Product::where('is_visible', true)
-            ->orderByDesc('id')
+        $products = Product::orderByDesc('id')
             ->take(6)
             ->get();
 
@@ -97,6 +96,7 @@ class ProductController extends Controller
                 'name'        => $p->name,
                 'slug'        => $p->slug,
                 'price_cents' => $p->price_cents,
+                'is_visible'  => $p->is_visible,
                 'categories'  => $p->categories,
                 'image_url'   => $p->image_url,
                 'image_urls'  => $p->image_urls,

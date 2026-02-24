@@ -68,23 +68,36 @@
         @endif
 
         <!-- Prezzo -->
-        <p class="text-2xl font-semibold text-brand-red mb-4">
-            {{ number_format($product->price_cents / 100, 2, ',', '.') }} €
-        </p>
+        @if ($product->is_visible)
+            <p class="text-2xl font-semibold text-brand-red mb-4">
+                {{ number_format($product->price_cents / 100, 2, ',', '.') }} €
+            </p>
+        @else
+            <p class="text-2xl font-semibold text-stone-400 mb-4 italic">
+                Non disponibile
+            </p>
+        @endif
 
         <!-- Form Carrello -->
+        @if ($product->is_visible)
         <form method="POST" action="{{ route('cart.add') }}" class="flex items-center gap-4">
             @csrf
             <input type="hidden" name="product_id" value="{{ $product->id }}">
             <input type="number" name="qty" value="1" min="1" max="20"
-                class="w-20 px-3 py-2 border border-brand-dark/40 rounded-lg 
-                       focus:outline-none focus:ring-2 focus:ring-brand-wine 
+                class="w-20 px-3 py-2 border border-brand-dark/40 rounded-lg
+                       focus:outline-none focus:ring-2 focus:ring-brand-wine
                        text-brand-dark bg-white">
             <button type="submit"
                 class="px-5 py-2 rounded-lg bg-brand-wine text-white font-medium hover:bg-brand-red transition">
                 Aggiungi al carrello
             </button>
         </form>
+        @else
+        <button disabled
+            class="px-5 py-2 rounded-lg bg-stone-300 text-stone-500 font-medium cursor-not-allowed">
+            Non disponibile
+        </button>
+        @endif
 
     </div>
 </body>
