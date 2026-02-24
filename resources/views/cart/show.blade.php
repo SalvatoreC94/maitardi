@@ -313,13 +313,8 @@
               <a href="{{ route('prodotto.show', $product) }}" style="text-decoration:none; color:inherit;">
                 <img src="{{ $product->image_url }}" alt="{{ $product->name }}">
                 <h3>{{ $product->name }}</h3>
-                @if ($product->is_visible)
-                  <p>€ {{ number_format($product->price_cents / 100, 2, ',', '.') }}</p>
-                @else
-                  <p style="color:#a8a29e; font-style:italic;">Non disponibile</p>
-                @endif
+                <p>€ {{ number_format($product->price_cents / 100, 2, ',', '.') }}</p>
               </a>
-              @if ($product->is_visible)
               <form method="POST" action="{{ route('cart.add') }}" style="padding:0 12px 12px;">
                 @csrf
                 <input type="hidden" name="product_id" value="{{ $product->id }}">
@@ -328,13 +323,6 @@
                   Aggiungi al carrello
                 </button>
               </form>
-              @else
-              <div style="padding:0 12px 12px;">
-                <button disabled class="btn" style="width:100%; text-align:center; font-size:0.85rem; background:#d6d3d1; color:#a8a29e; cursor:not-allowed; border:none; padding:8px; border-radius:6px;">
-                  Non disponibile
-                </button>
-              </div>
-              @endif
             </div>
           @endforeach
         </div>

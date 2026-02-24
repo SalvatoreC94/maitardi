@@ -48,7 +48,8 @@ Route::get('/categories/{slug}/products', function (Request $request, string $sl
     $category = Category::where('slug', $slug)->where('is_visible', true)->firstOrFail();
     $perPage = (int) $request->integer('per_page', 9);
 
-    $q = Product::whereHas('categories', fn($c) => $c->where('categories.id', $category->id))
+    $q = Product::where('is_visible', true)
+        ->whereHas('categories', fn($c) => $c->where('categories.id', $category->id))
         ->orderByDesc('id');
 
     $paginator = $q->paginate($perPage);
@@ -58,7 +59,6 @@ Route::get('/categories/{slug}/products', function (Request $request, string $sl
         'name' => $p->name,
         'slug' => $p->slug,
         'price_cents' => $p->price_cents,
-        'is_visible' => $p->is_visible,
         'categories' => $p->categories,
         'image_url' => $p->image_url,
         'image_urls' => $p->image_urls,
@@ -92,7 +92,7 @@ Route::get('/products', function (Request $request) {
     $min = $request->has('min_price') ? max(0, (int) $request->integer('min_price')) : null;
     $max = $request->has('max_price') ? max(0, (int) $request->integer('max_price')) : null;
 
-    $q = Product::orderByDesc('id');
+    $q = Product::where('is_visible', true)->orderByDesc('id');
 
     if ($categorySlug) {
         $q->whereHas('categories', fn($c) => $c->where('slug', $categorySlug));
@@ -116,7 +116,6 @@ Route::get('/products', function (Request $request) {
         'name' => $p->name,
         'slug' => $p->slug,
         'price_cents' => $p->price_cents,
-        'is_visible' => $p->is_visible,
         'categories' => $p->categories,
         // Gestione sicura immagini
         'image_url' => $p->image_url ?? 'https://picsum.photos/800/600?blur=2',
@@ -139,7 +138,7 @@ Route::get('/products', function (Request $request) {
 
 // Dettaglio prodotto per slug
 Route::get('/products/{slug}', function (string $slug) {
-    $p = Product::where('slug', $slug)->firstOrFail();
+    $p = Product::where('slug', $slug)->where('is_visible', true)->firstOrFail();
 
     return [
         'id' => $p->id,
@@ -147,7 +146,6 @@ Route::get('/products/{slug}', function (string $slug) {
         'slug' => $p->slug,
         'description' => $p->description,
         'price_cents' => $p->price_cents,
-        'is_visible' => $p->is_visible,
         'stock' => $p->stock_qty,
         'categories' => $p->categories()->get(['id','name','slug']),
         'image_url' => $p->image_url ?? 'https://picsum.photos/800/600?blur=2',
@@ -157,7 +155,8 @@ Route::get('/products/{slug}', function (string $slug) {
 
 // Prodotti in evidenza
 Route::get('/featured-products', function () {
-    $products = Product::orderByDesc('id')
+    $products = Product::where('is_visible', true)
+        ->orderByDesc('id')
         ->take(6)
         ->get();
 
@@ -166,7 +165,6 @@ Route::get('/featured-products', function () {
         'name' => $p->name,
         'slug' => $p->slug,
         'price_cents' => $p->price_cents,
-        'is_visible' => $p->is_visible,
         'categories' => $p->categories,
         'image_url' => $p->image_url ?? 'https://picsum.photos/800/600?blur=2',
         'image_urls' => $p->image_urls ?? ['https://picsum.photos/800/600?blur=2'],
