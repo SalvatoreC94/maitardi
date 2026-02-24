@@ -140,10 +140,11 @@ const formatPrice = (c) =>
 
 onMounted(async () => {
   try {
-    const { data } = await axios.get('/api/featured-products')
-    featured.value = data?.length ? data : []
+    // Se hai un campo "is_featured" nel database
+    const { data } = await axios.get('/api/products', { params: { featured: true, per_page: 3 } })
+    featured.value = data.data?.length ? data.data : []
 
-    // fallback: se non esistono prodotti featured, prendi gli ultimi 3
+    // fallback: se non esistono prodotti featured, prendi gli ultimi 3 visibili
     if (!featured.value.length) {
       const res = await axios.get('/api/products', { params: { per_page: 3 } })
       featured.value = res.data.data
