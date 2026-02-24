@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\NewOrderNotification;
+use App\Mail\OrderConfirmation;
 use App\Models\Cart;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Stripe\Stripe;
 use Stripe\Webhook;
 
@@ -77,6 +80,25 @@ class StripeWebhookController extends Controller
                             $cart = Cart::find($cartId);
                             if ($cart) {
                                 $cart->items()->delete();
+                            }
+                        }
+
+                        // Invio email di conferma al cliente e notifica al proprietario
+                        $order->load('items.product');
+                        try {
+                            Mail::to($order->email)->send(new OrderConfirmation($order));
+                            Log::info("Stripe: email conferma inviata a {$order->email}");
+                        } catch (\Throwable $e) {
+                            Log::error("Stripe: errore invio email cliente", ['err' => $e->getMessage()]);
+                        }
+
+                        $ownerEmail = config('mail.owner_email', env('OWNER_EMAIL'));
+                        if ($ownerEmail) {
+                            try {
+                                Mail::to($ownerEmail)->send(new NewOrderNotification($order));
+                                Log::info("Stripe: notifica nuovo ordine inviata a {$ownerEmail}");
+                            } catch (\Throwable $e) {
+                                Log::error("Stripe: errore invio email proprietario", ['err' => $e->getMessage()]);
                             }
                         }
 

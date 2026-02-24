@@ -76,18 +76,30 @@
         <div
           v-for="p in featured"
           :key="p.id"
-          class="border border-brand-peach/40 rounded-2xl overflow-hidden hover:shadow-lg transition duration-300 transform hover:-translate-y-1"
+          class="border border-brand-peach/40 rounded-2xl overflow-hidden hover:shadow-lg transition duration-300 transform hover:-translate-y-1 flex flex-col"
         >
-          <img
-            :src="p.image_url"
-            :alt="p.name"
-            class="w-full h-56 object-cover bg-white"
-          />
-          <div class="p-4 text-left">
+          <a :href="`/prodotti/${p.slug}`" class="block">
+            <img
+              :src="p.image_url"
+              :alt="p.name"
+              class="w-full h-56 object-cover bg-white"
+            />
+          </a>
+          <div class="p-4 text-left flex-1 flex flex-col">
             <h3 class="font-semibold mb-2 text-brand-dark">{{ p.name }}</h3>
-            <p class="text-brand-red font-semibold text-lg">
+            <p class="text-brand-red font-semibold text-lg mb-4">
               {{ formatPrice(p.price_cents) }}
             </p>
+            <form method="POST" action="/carrello/aggiungi" class="mt-auto">
+              <input type="hidden" name="_token" :value="csrf" />
+              <input type="hidden" name="product_id" :value="p.id" />
+              <input type="hidden" name="qty" value="1" />
+              <button
+                class="w-full bg-brand-red text-white py-2 rounded-lg hover:bg-brand-wine transition text-sm font-semibold"
+              >
+                Aggiungi al carrello
+              </button>
+            </form>
           </div>
         </div>
       </div>
@@ -107,6 +119,7 @@ import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { RouterLink } from 'vue-router'
 
+const csrf = document.querySelector('meta[name="csrf-token"]')?.content
 const featured = ref([])
 
 const getImage = (file) => `/images/${file}`

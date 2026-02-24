@@ -2,35 +2,35 @@
   <div class="min-h-screen bg-brand-peach/5 text-brand-dark flex flex-col">
     <!-- Topbar -->
     <div class="text-xs bg-brand-wine text-white">
-      <div class="max-w-6xl mx-auto px-4 h-9 flex items-center justify-between">
-<span class="tracking-wide flex items-center gap-4">
-  📍 San Valentino Torio
+      <div class="max-w-6xl mx-auto px-2 md:px-4 h-9 flex items-center justify-between gap-2">
+        <span class="tracking-wide flex items-center gap-2 md:gap-4 min-w-0">
+          <span class="hidden sm:inline">📍 San Valentino Torio</span>
+          <span class="sm:hidden">📍 S. Valentino T.</span>
 
-  <!-- WhatsApp (pill) -->
- <a
-  href="https://wa.me/393348169141?text=Ciao%2C%20sarei%20interessato%20a..."
-  target="_blank"
-  rel="noopener noreferrer"
-  class="inline-flex items-center gap-2 px-3 py-1.5 border border-brand-peach/60 rounded-full 
-         text-white hover:bg-brand-peach/20 transition"
->
-  <i class="fa-brands fa-whatsapp text-brand-peach"></i>
-  WhatsApp 3348169141
-</a>
+          <!-- WhatsApp (pill) -->
+          <a
+            href="https://wa.me/393348169141?text=Ciao%2C%20sarei%20interessato%20a..."
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1 md:py-1.5 border border-brand-peach/60 rounded-full
+                   text-white hover:bg-brand-peach/20 transition text-[10px] md:text-xs whitespace-nowrap"
+          >
+            <i class="fa-brands fa-whatsapp text-brand-peach"></i>
+            <span class="hidden sm:inline">WhatsApp 3348169141</span>
+            <span class="sm:hidden">WhatsApp</span>
+          </a>
 
+          <!-- Telefono (pill) -->
+          <a
+            href="tel:+393348169141"
+            class="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 border border-brand-peach/60 rounded-full
+                   text-white hover:bg-brand-peach/20 transition"
+          >
+            ☎️ 3348169141
+          </a>
+        </span>
 
-
-  <!-- Telefono (pill) -->
-  <a
-    href="tel:+393348169141"
-    class="inline-flex items-center gap-2 px-3 py-1.5 border border-brand-peach/60 rounded-full 
-           text-white hover:bg-brand-peach/20 transition"
-  >
-    ☎️ 3348169141
-  </a>
-</span>
-
-        <RouterLink to="/contatti" class="hover:underline text-brand-peach">
+        <RouterLink to="/contatti" class="hover:underline text-brand-peach whitespace-nowrap">
           Contattaci
         </RouterLink>
       </div>
@@ -38,7 +38,7 @@
 
     <!-- Header / Navbar -->
     <header class="bg-white/90 backdrop-blur sticky top-0 z-50 border-b border-brand-peach/40 shadow-sm">
-      <div class="max-w-8xl mx-auto px-4 h-24 md:h-28 flex items-center justify-between relative">
+      <div class="max-w-7xl mx-auto px-4 h-24 md:h-28 flex items-center justify-between relative">
         <!-- 🔹 Logo sinistro -->
         <RouterLink to="/" class="flex items-center gap-3">
           <img
@@ -60,7 +60,7 @@
         </div>
 
         <!-- 🔹 Nav destra -->
-        <nav class="hidden md:flex items-center gap-6 text-sm font-medium">
+        <nav class="hidden lg:flex items-center gap-4 text-sm font-medium">
           <RouterLink :class="nav('home')" to="/">Home</RouterLink>
           <RouterLink :class="nav('about')" to="/chi-siamo">Chi siamo</RouterLink>
           <RouterLink :class="nav('shop')" to="/shop">Shop</RouterLink>
@@ -75,7 +75,7 @@
 
         <!-- 🔸 Mobile trigger -->
         <button
-          class="md:hidden inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-brand-wine border-brand-peach/50"
+          class="lg:hidden inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-brand-wine border-brand-peach/50"
           @click="toggle"
           :aria-expanded="open ? 'true' : 'false'"
           aria-controls="mobile-menu"
@@ -90,11 +90,11 @@
       </div>
 
       <!-- Mobile overlay -->
-      <div v-show="open" class="fixed inset-0 z-40 bg-black/30 md:hidden" @click="close" />
+      <div v-show="open" class="fixed inset-0 z-40 bg-black/30 lg:hidden" @click="close" />
 
       <!-- Mobile menu -->
       <transition name="fade">
-        <div v-show="open" id="mobile-menu" class="md:hidden border-t bg-white relative z-50">
+        <div v-show="open" id="mobile-menu" class="lg:hidden border-t bg-white relative z-50">
           <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col items-center gap-4 text-sm font-medium">
             <img
               :src="logo"
@@ -118,7 +118,7 @@
     </header>
 
     <!-- Main content -->
-    <main class="flex-grow w-full max-w-8xl mx-auto px-4 py-10">
+    <main class="flex-grow w-full max-w-7xl mx-auto px-4 py-10">
       <RouterView />
     </main>
 

@@ -155,6 +155,12 @@
 </head>
 
 <body>
+  <div style="max-width:1000px; margin:0 auto 16px;">
+    <a href="{{ route('cart.show') }}" style="color:var(--brand-red); text-decoration:none; font-size:0.95rem; font-weight:500;">
+      &larr; Torna al carrello
+    </a>
+  </div>
+
   <h1>Checkout</h1>
 
   <div class="grid">
