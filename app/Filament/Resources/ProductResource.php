@@ -64,10 +64,18 @@ class ProductResource extends Resource
                     ->rows(4),
 
                 Forms\Components\TextInput::make('price_cents')
-                    ->label('Prezzo (cent)')
+                    ->label('Prezzo (€)')
                     ->numeric()
                     ->minValue(0)
-                    ->required(),
+                    ->step(0.01)
+                    ->prefix('€')
+                    ->required()
+                    ->afterStateHydrated(function (Forms\Components\TextInput $component, ?int $state) {
+                        if ($state !== null) {
+                            $component->state(number_format($state / 100, 2, '.', ''));
+                        }
+                    })
+                    ->dehydrateStateUsing(fn (?string $state) => $state !== null ? (int) round((float) $state * 100) : null),
 
                 Forms\Components\TextInput::make('sku')
                     ->label('SKU')
