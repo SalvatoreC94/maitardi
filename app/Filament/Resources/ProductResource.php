@@ -83,7 +83,7 @@ class ProductResource extends Resource
                     ->maxLength(50),
 
                 Forms\Components\Toggle::make('is_visible')
-                    ->label('Visibile')
+                    ->label('Disponibile')
                     ->default(true),
 
                 Forms\Components\FileUpload::make('images')
@@ -136,7 +136,7 @@ class ProductResource extends Resource
                 ->sortable(),
 
             Tables\Columns\IconColumn::make('is_visible')
-                ->label('Visibile')
+                ->label('Disponibile')
                 ->boolean(),
 
             Tables\Columns\TextColumn::make('updated_at')

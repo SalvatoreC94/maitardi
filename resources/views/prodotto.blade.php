@@ -67,24 +67,30 @@
             </p>
         @endif
 
-        <!-- Prezzo -->
-        <p class="text-2xl font-semibold text-brand-red mb-4">
-            {{ number_format($product->price_cents / 100, 2, ',', '.') }} €
-        </p>
+        @if($product->is_visible)
+            <!-- Prezzo -->
+            <p class="text-2xl font-semibold text-brand-red mb-4">
+                {{ number_format($product->price_cents / 100, 2, ',', '.') }} €
+            </p>
 
-        <!-- Form Carrello -->
-        <form method="POST" action="{{ route('cart.add') }}" class="flex items-center gap-4">
-            @csrf
-            <input type="hidden" name="product_id" value="{{ $product->id }}">
-            <input type="number" name="qty" value="1" min="1" max="20"
-                class="w-20 px-3 py-2 border border-brand-dark/40 rounded-lg 
-                       focus:outline-none focus:ring-2 focus:ring-brand-wine 
-                       text-brand-dark bg-white">
-            <button type="submit"
-                class="px-5 py-2 rounded-lg bg-brand-wine text-white font-medium hover:bg-brand-red transition">
-                Aggiungi al carrello
-            </button>
-        </form>
+            <!-- Form Carrello -->
+            <form method="POST" action="{{ route('cart.add') }}" class="flex items-center gap-4">
+                @csrf
+                <input type="hidden" name="product_id" value="{{ $product->id }}">
+                <input type="number" name="qty" value="1" min="1" max="20"
+                    class="w-20 px-3 py-2 border border-brand-dark/40 rounded-lg
+                           focus:outline-none focus:ring-2 focus:ring-brand-wine
+                           text-brand-dark bg-white">
+                <button type="submit"
+                    class="px-5 py-2 rounded-lg bg-brand-wine text-white font-medium hover:bg-brand-red transition">
+                    Aggiungi al carrello
+                </button>
+            </form>
+        @else
+            <p class="text-xl font-semibold text-gray-500 mb-4 bg-gray-100 inline-block px-6 py-3 rounded-lg">
+                Non disponibile
+            </p>
+        @endif
 
     </div>
 </body>
