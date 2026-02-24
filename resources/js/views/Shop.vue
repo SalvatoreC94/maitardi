@@ -116,22 +116,28 @@
             <a :href="`/prodotti/${p.slug}`">{{ p.name }}</a>
           </h3>
 
-          <div class="text-brand-red font-semibold mb-4">
-            {{ formatPrice(p.price_cents) }}
+          <template v-if="p.is_visible">
+            <div class="text-brand-red font-semibold mb-4">
+              {{ formatPrice(p.price_cents) }}
+            </div>
+
+            <form method="POST" action="/carrello/aggiungi" class="mt-auto">
+              <input type="hidden" name="_token" :value="csrf" />
+              <input type="hidden" name="product_id" :value="p.id" />
+              <input type="hidden" name="qty" value="1" />
+
+              <button
+                class="w-full bg-brand-red text-white py-2 rounded-lg hover:bg-brand-wine transition"
+              >
+                Aggiungi al carrello
+              </button>
+            </form>
+          </template>
+          <div v-else class="mt-auto">
+            <span class="inline-block bg-gray-200 text-gray-600 font-semibold py-2 px-4 rounded-lg w-full text-center">
+              Non disponibile
+            </span>
           </div>
-
-          <!-- Aggiungi al carrello -->
-          <form method="POST" action="/carrello/aggiungi" class="mt-auto">
-            <input type="hidden" name="_token" :value="csrf" />
-            <input type="hidden" name="product_id" :value="p.id" />
-            <input type="hidden" name="qty" value="1" />
-
-            <button
-              class="w-full bg-brand-red text-white py-2 rounded-lg hover:bg-brand-wine transition"
-            >
-              Aggiungi al carrello
-            </button>
-          </form>
         </div>
       </article>
     </div>

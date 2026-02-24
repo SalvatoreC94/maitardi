@@ -87,19 +87,26 @@
           </a>
           <div class="p-4 text-left flex-1 flex flex-col">
             <h3 class="font-semibold mb-2 text-brand-dark">{{ p.name }}</h3>
-            <p class="text-brand-red font-semibold text-lg mb-4">
-              {{ formatPrice(p.price_cents) }}
-            </p>
-            <form method="POST" action="/carrello/aggiungi" class="mt-auto">
-              <input type="hidden" name="_token" :value="csrf" />
-              <input type="hidden" name="product_id" :value="p.id" />
-              <input type="hidden" name="qty" value="1" />
-              <button
-                class="w-full bg-brand-red text-white py-2 rounded-lg hover:bg-brand-wine transition text-sm font-semibold"
-              >
-                Aggiungi al carrello
-              </button>
-            </form>
+            <template v-if="p.is_visible">
+              <p class="text-brand-red font-semibold text-lg mb-4">
+                {{ formatPrice(p.price_cents) }}
+              </p>
+              <form method="POST" action="/carrello/aggiungi" class="mt-auto">
+                <input type="hidden" name="_token" :value="csrf" />
+                <input type="hidden" name="product_id" :value="p.id" />
+                <input type="hidden" name="qty" value="1" />
+                <button
+                  class="w-full bg-brand-red text-white py-2 rounded-lg hover:bg-brand-wine transition text-sm font-semibold"
+                >
+                  Aggiungi al carrello
+                </button>
+              </form>
+            </template>
+            <div v-else class="mt-auto">
+              <span class="inline-block bg-gray-200 text-gray-600 font-semibold py-2 px-4 rounded-lg w-full text-center text-sm">
+                Non disponibile
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -129,15 +136,8 @@ const formatPrice = (c) =>
 
 onMounted(async () => {
   try {
-    // Se hai un campo "is_featured" nel database
-    const { data } = await axios.get('/api/products', { params: { featured: true, per_page: 3 } })
-    featured.value = data.data?.length ? data.data : []
-
-    // fallback: se non esistono prodotti featured, prendi gli ultimi 3 visibili
-    if (!featured.value.length) {
-      const res = await axios.get('/api/products', { params: { per_page: 3 } })
-      featured.value = res.data.data
-    }
+    const { data } = await axios.get('/api/featured-products')
+    featured.value = data?.length ? data.slice(0, 3) : []
   } catch (e) {
     console.error('Errore caricamento prodotti in evidenza:', e)
   }

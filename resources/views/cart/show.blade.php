@@ -313,16 +313,22 @@
               <a href="{{ route('prodotto.show', $product) }}" style="text-decoration:none; color:inherit;">
                 <img src="{{ $product->image_url }}" alt="{{ $product->name }}">
                 <h3>{{ $product->name }}</h3>
-                <p>€ {{ number_format($product->price_cents / 100, 2, ',', '.') }}</p>
+                @if($product->is_visible)
+                  <p>€ {{ number_format($product->price_cents / 100, 2, ',', '.') }}</p>
+                @else
+                  <p style="color: #9ca3af; font-weight: 600;">Non disponibile</p>
+                @endif
               </a>
-              <form method="POST" action="{{ route('cart.add') }}" style="padding:0 12px 12px;">
-                @csrf
-                <input type="hidden" name="product_id" value="{{ $product->id }}">
-                <input type="hidden" name="qty" value="1">
-                <button type="submit" class="btn btn-dark" style="width:100%; text-align:center; font-size:0.85rem;">
-                  Aggiungi al carrello
-                </button>
-              </form>
+              @if($product->is_visible)
+                <form method="POST" action="{{ route('cart.add') }}" style="padding:0 12px 12px;">
+                  @csrf
+                  <input type="hidden" name="product_id" value="{{ $product->id }}">
+                  <input type="hidden" name="qty" value="1">
+                  <button type="submit" class="btn btn-dark" style="width:100%; text-align:center; font-size:0.85rem;">
+                    Aggiungi al carrello
+                  </button>
+                </form>
+              @endif
             </div>
           @endforeach
         </div>
