@@ -86,23 +86,45 @@
 </head>
 
 <body>
-  <div class="icon">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-      <path
-        d="M12 0a12 12 0 1012 12A12.014 12.014 0 0012 0zm0 22a10 10 0 1110-10 10.011 10.011 0 01-10 10zm5-13.59l-5.7 5.7-2.3-2.3a1 1 0 00-1.4 1.42l3 3a1 1 0 001.4 0l6.4-6.4a1 1 0 10-1.4-1.42z" />
-    </svg>
-  </div>
+  @if (in_array(request()->query('redirect_status'), ['failed', 'requires_payment_method']))
 
-  <h1>Grazie! Ordine ricevuto 🎉</h1>
+    <div class="icon" style="background:#fee2e2;">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="fill:#b91c1c;">
+        <path d="M12 0a12 12 0 1012 12A12.014 12.014 0 0012 0zm0 22a10 10 0 1110-10 10.011 10.011 0 01-10 10zm1-6h-2v-2h2zm0-4h-2V7h2z"/>
+      </svg>
+    </div>
 
-  <p>
-    Se il pagamento è andato a buon fine, il tuo ordine è già in preparazione nei nostri laboratori.
-  </p>
+    <h1 style="color:#b91c1c;">Pagamento non riuscito</h1>
 
-  <a href="{{ route('catalogo') }}">Torna al catalogo</a>
+    <p>
+      Il pagamento non è andato a buon fine. Nessun importo è stato addebitato.<br>
+      Torna al checkout e riprova con un altro metodo di pagamento.
+    </p>
+
+    <a href="{{ route('checkout.show') }}" style="background:#b91c1c;">Torna al checkout</a>
+
+  @else
+
+    <div class="icon">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <path
+          d="M12 0a12 12 0 1012 12A12.014 12.014 0 0012 0zm0 22a10 10 0 1110-10 10.011 10.011 0 01-10 10zm5-13.59l-5.7 5.7-2.3-2.3a1 1 0 00-1.4 1.42l3 3a1 1 0 001.4 0l6.4-6.4a1 1 0 10-1.4-1.42z" />
+      </svg>
+    </div>
+
+    <h1>Grazie! Ordine ricevuto</h1>
+
+    <p>
+      Il pagamento è andato a buon fine. Il tuo ordine è già in preparazione nei nostri laboratori.<br>
+      Riceverai una email di conferma a breve.
+    </p>
+
+    <a href="{{ route('catalogo') }}">Torna al catalogo</a>
+
+  @endif
 
   <footer>
-    <p>🍰 Pasticceria MaiTardi — Tradizione e passione artigianale</p>
+    <p>Pasticceria MaiTardi — Tradizione e passione artigianale</p>
   </footer>
 </body>
 

@@ -7,6 +7,7 @@ use App\Mail\OrderConfirmation;
 use App\Models\Cart;
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Stripe\Stripe;
@@ -19,14 +20,14 @@ class StripeWebhookController extends Controller
         $payload   = $request->getContent();
         $sigHeader = $request->header('Stripe-Signature');
 
-        $secret = config('services.stripe.webhook_secret') ?? env('STRIPE_WEBHOOK_SECRET');
+        $secret = config('services.stripe.webhook_secret');
         if (! $secret) {
             Log::error('Stripe: webhook secret mancante (STRIPE_WEBHOOK_SECRET).');
             return response('Missing webhook secret', 500);
         }
 
         try {
-            Stripe::setApiKey(config('services.stripe.secret') ?? env('STRIPE_SECRET'));
+            Stripe::setApiKey(config('services.stripe.secret'));
             $event = Webhook::constructEvent($payload, $sigHeader, $secret);
         } catch (\UnexpectedValueException $e) {
             Log::error('Stripe: payload non valido', ['err' => $e->getMessage()]);
@@ -61,17 +62,43 @@ class StripeWebhookController extends Controller
 
                 if ($order) {
                     if ($type === 'payment_intent.succeeded') {
-                        $order->update([
-                            'payment_status' => 'paid',
-                            'order_status'   => 'preparing',
-                        ]);
+                        // Idempotenza: se già pagato (webhook duplicato) ignora silenziosamente
+                        if ($order->payment_status === 'paid') {
+                            Log::info("Stripe: ordine {$order->code} già pagato, webhook ignorato.");
+                            return response()->noContent();
+                        }
 
-                        // Decrementa stock dopo conferma pagamento
-                        foreach ($order->items()->with('product')->get() as $orderItem) {
-                            $product = $orderItem->product;
-                            if ($product && !is_null($product->stock_qty)) {
-                                $product->decrement('stock_qty', $orderItem->qty);
+                        // Aggiorna stato e stock in una transazione con row-lock
+                        // per evitare race condition su webhook concorrenti
+                        $processed = false;
+                        DB::transaction(function () use ($order, &$processed) {
+                            $locked = Order::where('id', $order->id)
+                                ->where('payment_status', '!=', 'paid')
+                                ->lockForUpdate()
+                                ->first();
+
+                            if (! $locked) {
+                                return; // altro webhook ha già acquisito il lock
                             }
+
+                            $locked->update([
+                                'payment_status' => 'paid',
+                                'order_status'   => 'preparing',
+                            ]);
+
+                            foreach ($locked->items()->with('product')->get() as $orderItem) {
+                                $product = $orderItem->product;
+                                if ($product && ! is_null($product->stock_qty)) {
+                                    $product->decrement('stock_qty', $orderItem->qty);
+                                }
+                            }
+
+                            $processed = true;
+                        });
+
+                        if (! $processed) {
+                            Log::info("Stripe: ordine {$order->code} già processato da webhook concorrente, skip.");
+                            return response()->noContent();
                         }
 
                         // Svuota il carrello associato
@@ -83,26 +110,18 @@ class StripeWebhookController extends Controller
                             }
                         }
 
-                        // Invio email di conferma al cliente e notifica al proprietario
+                        // Email in coda (async): evita timeout Stripe, QUEUE_CONNECTION=database
                         $order->load('items.product');
-                        try {
-                            Mail::to($order->email)->send(new OrderConfirmation($order));
-                            Log::info("Stripe: email conferma inviata a {$order->email}");
-                        } catch (\Throwable $e) {
-                            Log::error("Stripe: errore invio email cliente", ['err' => $e->getMessage()]);
-                        }
+                        Mail::to($order->email)->queue(new OrderConfirmation($order));
+                        Log::info("Stripe: email conferma accodata per {$order->email}");
 
-                        $ownerEmail = config('mail.owner_email', env('OWNER_EMAIL'));
+                        $ownerEmail = config('mail.owner_email');
                         if ($ownerEmail) {
-                            try {
-                                Mail::to($ownerEmail)->send(new NewOrderNotification($order));
-                                Log::info("Stripe: notifica nuovo ordine inviata a {$ownerEmail}");
-                            } catch (\Throwable $e) {
-                                Log::error("Stripe: errore invio email proprietario", ['err' => $e->getMessage()]);
-                            }
+                            Mail::to($ownerEmail)->queue(new NewOrderNotification($order));
+                            Log::info("Stripe: notifica accodata per {$ownerEmail}");
                         }
 
-                        Log::info("Stripe: ordine {$order->code} aggiornato a paid/preparing, stock decrementato, carrello svuotato");
+                        Log::info("Stripe: ordine {$order->code} elaborato: paid/preparing, stock decrementato, carrello svuotato");
                     } else {
                         $order->update([
                             'payment_status' => 'failed',
