@@ -36,7 +36,7 @@
                 @foreach ($order->items as $item)
                 <tr>
                   <td style="padding:10px 12px; border-bottom:1px solid #f0f0f0; font-size:14px; color:#181A2F;">
-                    {{ $item->product->name ?? 'Prodotto' }}
+                    {{ $item->product_name_snapshot ?? $item->product?->name ?? 'Prodotto' }}
                   </td>
                   <td style="padding:10px 12px; border-bottom:1px solid #f0f0f0; font-size:14px; text-align:center; color:#181A2F;">
                     {{ $item->qty }}
