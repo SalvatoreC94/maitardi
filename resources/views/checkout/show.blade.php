@@ -287,7 +287,7 @@
 
       <div class="line">
         <span>Spedizione
-          @if ($subtotal >= (int) env('FREE_SHIPPING_THRESHOLD_CENTS', 6900))
+          @if ($subtotal >= (int) config('shipping.free_threshold_cents', 6900))
             <small>(Gratis)</small>
           @else
             <small>(10,00 €)</small>
@@ -306,7 +306,7 @@
   <!-- STRIPE -->
   <script>
     (function() {
-      const stripe = Stripe("{{ config('services.stripe.key', env('STRIPE_KEY')) }}");
+      const stripe = Stripe("{{ config('services.stripe.key') }}");
       const form = document.getElementById('checkout-form');
       const payBtn = document.getElementById('pay-btn');
       const errorEl = document.getElementById('error');

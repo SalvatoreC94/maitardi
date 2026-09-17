@@ -202,6 +202,7 @@
       <div class="text-center text-xs text-white/60 pb-6">
         © {{ new Date().getFullYear() }} Pasticceria Maitardi — Tutti i diritti riservati
         <p>P.iva: 05085580651</p>
+        <p class="mt-1">Sito realizzato da <a href="https://salvatorecozzolinodev.it" target="_blank" rel="noopener noreferrer" class="text-brand-peach hover:underline transition">Salvatore Cozzolino</a></p>
       </div>
     </footer>
   </div>

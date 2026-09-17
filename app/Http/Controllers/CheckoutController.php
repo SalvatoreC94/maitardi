@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Stripe\StripeClient;
@@ -98,45 +99,48 @@ class CheckoutController extends Controller
         $shipping = $this->calcShipping($subtotal);
         $total    = $subtotal + $shipping;
 
-        // 4) Crea ordine con order_status = 'pending' (valore valido per l'enum DB)
-        $order = Order::create([
-            'user_id'               => $userId,
-            'code'                  => strtoupper(Str::random(10)),
-            'email'                 => $data['email'],
-            'customer_name'         => $data['name'],
-            'phone'                 => $data['phone'] ?? null,
-            'delivery_address'      => $data['address'],
-            'delivery_fee_cents'    => $shipping,
-            'subtotal_cents'        => $subtotal,
-            'discount_cents'        => 0,
-            'total_cents'           => $total,
-            'currency'              => 'EUR',
-            'payment_status'        => 'pending',
-            'order_status'          => 'pending',
-            'courier_name'          => null,
-            'tracking_code'         => null,
-            'stripe_payment_intent' => null,
-        ]);
-
-        // 5) Righe ordine (snapshot nome e prezzi al momento dell'acquisto)
-        foreach ($items as $it) {
-            $product = $it->product;
-            $unit    = $it->unit_price_cents ?? $product->price_cents;
-            $line    = $it->total_cents       ?? ($unit * $it->qty);
-
-            OrderItem::create([
-                'order_id'              => $order->id,
-                'product_id'            => $it->product_id,
-                'product_name_snapshot' => $product->name,
-                'unit_price_cents'      => $unit,
-                'total_cents'           => $line,
-                'qty'                   => $it->qty,
+        // 4+5) Crea ordine e righe in una transazione atomica
+        $order = DB::transaction(function () use ($userId, $data, $shipping, $subtotal, $total, $items) {
+            $order = Order::create([
+                'user_id'               => $userId,
+                'code'                  => strtoupper(Str::random(10)),
+                'email'                 => $data['email'],
+                'customer_name'         => $data['name'],
+                'phone'                 => $data['phone'] ?? null,
+                'delivery_address'      => $data['address'],
+                'delivery_fee_cents'    => $shipping,
+                'subtotal_cents'        => $subtotal,
+                'discount_cents'        => 0,
+                'total_cents'           => $total,
+                'currency'              => 'EUR',
+                'payment_status'        => 'pending',
+                'order_status'          => 'pending',
+                'courier_name'          => null,
+                'tracking_code'         => null,
+                'stripe_payment_intent' => null,
             ]);
-        }
+
+            foreach ($items as $it) {
+                $product = $it->product;
+                $unit    = $it->unit_price_cents ?? $product->price_cents;
+                $line    = $it->total_cents       ?? ($unit * $it->qty);
+
+                OrderItem::create([
+                    'order_id'              => $order->id,
+                    'product_id'            => $it->product_id,
+                    'product_name_snapshot' => $product->name,
+                    'unit_price_cents'      => $unit,
+                    'total_cents'           => $line,
+                    'qty'                   => $it->qty,
+                ]);
+            }
+
+            return $order;
+        });
 
         // 6) PaymentIntent Stripe (salva cart_id nei metadata per svuotare dopo)
         try {
-            $secret = config('services.stripe.secret') ?? env('STRIPE_SECRET');
+            $secret = config('services.stripe.secret');
             if (!$secret) {
                 throw new \RuntimeException('Stripe secret non configurato.');
             }
@@ -174,8 +178,8 @@ class CheckoutController extends Controller
      */
     private function calcShipping(int $subtotalCents): int
     {
-        $base      = (int) env('SHIPPING_BASE_CENTS', 1000);
-        $threshold = (int) env('FREE_SHIPPING_THRESHOLD_CENTS', 6900);
+        $base      = (int) config('shipping.base_cents', 1000);
+        $threshold = (int) config('shipping.free_threshold_cents', 6900);
         return $subtotalCents >= $threshold ? 0 : $base;
     }
 }
